@@ -1,6 +1,6 @@
 import altair as alt
 import numpy as np
-import streamlit run as st
+import streamlit as st
 import tensorflow as tf
 import tensorflow_hub as hub
 import PIL as pl
