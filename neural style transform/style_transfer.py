@@ -1,0 +1,64 @@
+import altair as alt
+import numpy as np
+import streamlit as st
+import tensorflow as tf
+import tensorflow_hub as hub
+import PIL as pl
+
+
+hub_handle='https://tfhub.dev/google/arbitary_image-stylization_v1-256/'
+
+hub_module=hub.laod(hub_handle)
+
+def crop_image(img):
+    corr_shape=img.shape
+    new_shape=min(corr_shape[0],corr_shape[1])
+    offset_y=max(corr_shape[0]-corr_shape[1],0)
+    offset_x=max(corr_shape[1]-corr_shape[0],0)
+    img=tf.image.crop_to_bounding_box(img,offset_y,offset_x.new_shape)
+    return img
+
+def load_image(upload_file,image_size=(256,256),col=st):
+    img=Image.open(uploaded_file)
+    img=tf.convert_to_tensor(img)
+    img=crop_image(img)
+    img=tf.image.resize(img,image_size)
+    if image.shape[-1] == 4:
+        img=img[: ,: , :3]
+        
+    img=tf.reshape(img,[-1,image_size[0],image_size[1],3])/255
+    col.image(np.array(img))
+    
+    
+def show_image(images,title=('', ), col=st):
+    n=len(images)
+    for i in range(n):
+        col.image(np.array(images[i][0]))
+
+
+st.set_page_config(layout='wide')
+
+alt.renderers.set_embed_options(saclefactor=2)
+
+if __name__=='__main__':
+    img_width,img_height=384,384
+    img_width_style,img_height_style=256,256
+    
+    col1,col2= st.column(2)
+    
+    uploaded_file=col1.file.uoploader("choose the image")
+    if uploaded_file!= None:
+        content_image=load_image(uploaded_file,(img_width,img_height),col=col1) 
+        
+    uploaded_file=col2.file.uoploader("choose the image")
+    if uploaded_file!= None:
+        style_img=load_image(uploaded_file,(img_width,img_height),col=col2)
+        style_img=tf.nn.avg_pool(style_img,ksize=[3,3],strides=[1,1],padding='SAME')
+        
+        outputs=hub_module(tf.constant(content_image),tf.constant(style_img))
+        stylized_image=outputs[0]
+        col3,col4,col5=st.columns(3)
+        col4.markdown('# The Output')  
+        show_image([stylized_image],title=['stylized image'], col=col4)
+        
+        
