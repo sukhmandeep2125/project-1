@@ -8,7 +8,7 @@ import PIL as pl
 
 hub_handle='https://tfhub.dev/google/arbitary_image-stylization_v1-256/'
 
-hub_module=hub.laod(hub_handle)
+hub_module=hub.load(hub_handle)
 
 def crop_image(img):
     corr_shape=img.shape
